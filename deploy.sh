@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# The VPS pulls origin/main every 2 minutes, so `git push` is all a deploy needs.
-# This pushes and then makes the server pull right away instead of waiting.
+# The VPS keeps a clone of this repo and serves its public/ folder.
+# Deploying = push to GitHub, then have the server pull origin/main.
 # Usage: ./deploy.sh
 set -euo pipefail
 
