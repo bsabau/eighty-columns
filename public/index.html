@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Eighty Columns</title>
+  <meta name="description" content="Eighty Columns — coming soon.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23111'/><text x='16' y='22' font-family='monospace' font-size='15' font-weight='700' fill='%23e8e6e1' text-anchor='middle'>80</text></svg>">
+  <style>
+    :root {
+      --bg: #f4f2ed;
+      --fg: #1a1a1a;
+      --muted: #8a867d;
+      --rule: #d6d2c8;
+      --accent: #c2410c;
+      --card: #efe4c2;
+      --card-edge: #d8caa0;
+      --card-ink: #a8956a;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #111110;
+        --fg: #e8e6e1;
+        --muted: #77746d;
+        --rule: #2a2927;
+        --accent: #fb923c;
+        --card: #d9cca6;
+        --card-edge: #bcae86;
+        --card-ink: #8e7d55;
+      }
+    }
+    * { box-sizing: border-box; margin: 0; }
+    html, body { height: 100%; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 15px;
+      line-height: 1.6;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+      -webkit-font-smoothing: antialiased;
+    }
+    main {
+      width: 100%;
+      max-width: 80ch;
+    }
+    .card {
+      display: block;
+      width: 100%;
+      height: auto;
+      margin: 32px 0 24px;
+      filter: drop-shadow(0 1px 0 var(--card-edge)) drop-shadow(0 10px 24px rgba(0, 0, 0, 0.12));
+      user-select: none;
+    }
+    .card .body { fill: var(--card); }
+    .card .digit { fill: var(--card-ink); font-size: 7.5px; text-anchor: middle; dominant-baseline: central; }
+    .card .colnum { fill: var(--card-ink); font-size: 3.6px; text-anchor: middle; }
+    .card .hole { fill: #000; }
+    .card .digit, .card .hole { transition: opacity 0.12s; }
+    .card .pending { opacity: 0; }
+    h1 {
+      font-size: clamp(28px, 6vw, 44px);
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+    .status {
+      margin-top: 20px;
+      color: var(--muted);
+    }
+    .status::before { content: "$ "; color: var(--accent); }
+    .cursor {
+      display: inline-block;
+      width: 0.6em;
+      height: 1.1em;
+      background: var(--fg);
+      vertical-align: text-bottom;
+      margin-left: 2px;
+      animation: blink 1.1s steps(1) infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { .cursor { animation: none; } }
+    footer {
+      margin-top: 40px;
+      padding-top: 6px;
+      border-top: 1px solid var(--rule);
+      color: var(--muted);
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Eighty Columns</h1>
+    <svg class="card" id="card" viewBox="0 0 738 325" role="img" aria-label="Punch card with COMING SOON punched in Hollerith code"></svg>
+    <p class="status">coming soon<span class="cursor" aria-hidden="true"></span></p>
+    <footer>
+      <span>&copy; <span id="y">2026</span></span>
+      <span>col 80</span>
+    </footer>
+  </main>
+  <script>
+    document.getElementById("y").textContent = new Date().getFullYear();
+
+    // IBM 80-column card: rows 12, 11, 0-9 top to bottom; Hollerith encoding.
+    const MESSAGE = "COMING SOON";
+    const NS = "http://www.w3.org/2000/svg";
+    const card = document.getElementById("card");
+    const colX = (c) => 25.35 + c * 8.7;
+    const rowY = (r) => 31.25 + r * 25;
+    const rowIndex = (label) => (label === 12 ? 0 : label === 11 ? 1 : label + 2);
+
+    function punches(ch) {
+      const n = ch.charCodeAt(0);
+      if (ch >= "A" && ch <= "I") return [12, n - 64];
+      if (ch >= "J" && ch <= "R") return [11, n - 73];
+      if (ch >= "S" && ch <= "Z") return [0, n - 81];
+      if (ch >= "0" && ch <= "9") return [n - 48];
+      return [];
+    }
+
+    function el(tag, attrs, text) {
+      const node = document.createElementNS(NS, tag);
+      for (const k in attrs) node.setAttribute(k, attrs[k]);
+      if (text != null) node.textContent = text;
+      card.appendChild(node);
+      return node;
+    }
+
+    el("path", { class: "body", d: "M28 0H730Q738 0 738 8V317Q738 325 730 325H8Q0 325 0 317V44Z" });
+
+    const digits = {};
+    for (let c = 0; c < 80; c++) {
+      for (let d = 0; d <= 9; d++) {
+        digits[c + ":" + (d + 2)] = el("text", { class: "digit", x: colX(c), y: rowY(d + 2) }, d);
+      }
+      el("text", { class: "colnum", x: colX(c), y: 95 }, c + 1);
+      el("text", { class: "colnum", x: colX(c), y: 321 }, c + 1);
+    }
+
+    const steps = [...MESSAGE].map((ch, c) => {
+      const parts = [];
+      for (const label of punches(ch)) {
+        const r = rowIndex(label);
+        parts.push(el("rect", {
+          class: "hole pending", x: colX(c) - 2.75, y: rowY(r) - 6.25, width: 5.5, height: 12.5, rx: 0.8,
+        }));
+        if (digits[c + ":" + r]) parts.push(digits[c + ":" + r]);
+      }
+      return parts;
+    });
+
+    function punch(parts) {
+      for (const node of parts) {
+        if (node.classList.contains("digit")) node.style.opacity = 0;
+        else node.classList.remove("pending");
+      }
+    }
+
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      steps.forEach(punch);
+    } else {
+      steps.forEach((parts, i) => setTimeout(() => punch(parts), 500 + i * 140));
+    }
+  </script>
+</body>
+</html>
