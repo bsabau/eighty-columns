@@ -8,7 +8,7 @@ punched in Hollerith code, one column at a time.
 ## Layout
 
 - `public/` — everything that gets served (just `index.html`, no build step)
-- `deploy.sh` — uploads `public/` to the server
+- `deploy.sh` — pushes and makes the server pick it up immediately
 
 ## Run locally
 
@@ -16,10 +16,15 @@ Open `public/index.html` in a browser.
 
 ## Deploy
 
+Push to `main`. The VPS keeps a clone of this repo and pulls `origin/main`
+every 2 minutes; a small Caddy container serves its `public/` folder read-only
+behind the shared Caddy reverse proxy. No secrets are stored on GitHub: the
+repo is public, so the server needs no credentials to pull.
+
+To go live right away instead of within 2 minutes:
+
 ```bash
 ./deploy.sh
 ```
 
-This rsyncs `public/` to the VPS, where a small Caddy container serves it
-read-only behind the shared Caddy reverse proxy. Changes are live as soon as
-the upload finishes. Override the target with `VPS=user@host` or `REMOTE_DIR=…`.
+Anything edited directly in the server's clone is overwritten on the next pull.
